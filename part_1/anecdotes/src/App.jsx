@@ -18,10 +18,17 @@ const App = () => {
   const nextAnecdote = () => {
     setSelected(Math.floor(Math.random() * anecdotes.length))
   }
+  const vote = () => {
+    const updatedVotes = [...votes]
+    updatedVotes[selected] += 1
+    setVote(updatedVotes)
+  }
 
   return (
     <div>
       <div>{anecdotes[selected]}</div>
+      <div>has {votes[selected]} votes</div>
+      <button onClick={vote}>vote</button>
       <button onClick={nextAnecdote}>next anecdote</button>
     </div>
   )
