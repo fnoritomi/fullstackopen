@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react'
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
+import Notification from './components/Notification'
 import personService from './services/persons'
+
 
 
 const App = () => {
@@ -10,6 +12,8 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [filter, setFilter] = useState('')
+  const [message, setMessage] = useState(null)
+  const [msgType, setMsgType] = useState(null)
 
   const handleNameChange = (event) => setNewName(event.target.value)
 
@@ -21,6 +25,7 @@ const App = () => {
     personService
       .getAll()
       .then(initialPersons => {
+        console.log(initialPersons)
         setPersons(initialPersons)
       })
   }, [])
@@ -28,7 +33,6 @@ const App = () => {
   const personsToShow = filter === ''
   ? persons
   : persons.filter(person => person.name.toLowerCase().includes(filter.toLowerCase()))
-
 
   const addPerson = (event) => {
     event.preventDefault()
@@ -43,6 +47,12 @@ const App = () => {
             setPersons(updatedPersons)
             setNewName('')
             setNewNumber('')
+            setMsgType('success')
+            setMessage(updatedPerson.name)
+            setTimeout(() => {
+              setMessage(null)
+              setMsgType(null)
+              }, 5000)    
           })
       }
     } else {
@@ -58,6 +68,12 @@ const App = () => {
           setPersons(updatedPersons)
           setNewName('')
           setNewNumber('')
+          setMessage(createdPerson.name)          
+          setMsgType('success')
+          setTimeout(() => {
+            setMessage(null)
+            setMsgType(null)
+            }, 5000)    
         })
     }
   }
@@ -67,6 +83,14 @@ const App = () => {
     if (window.confirm(`Delete ${person.name}?`)) {
       personService
         .remove(id)
+        .catch(error => {
+          setMessage(`Information of ${person.name} has already been removed from server`)          
+          setMsgType('error')
+          setTimeout(() => {
+            setMessage(null)
+            setMsgType(null)
+          }, 5000)
+        })        
         const updatedPersons = persons.filter(p => p.id !== id)
         setPersons(updatedPersons)
     }
@@ -75,6 +99,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={message} msgType={msgType} />
       <Filter filter={filter} handleFilterChange={handleFilterChange} />
       <h3>add a new</h3>
       <PersonForm 
