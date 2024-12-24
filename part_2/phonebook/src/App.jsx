@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
-import axios from 'axios'
+import personService from './services/persons'
 
 
 const App = () => {
@@ -18,12 +18,10 @@ const App = () => {
   const handleFilterChange = (event) => setFilter(event.target.value)
 
   useEffect(() => {
-    console.log('effect')
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
-        console.log('promise fulfilled')
-        setPersons(response.data)
+    personService
+      .getAll()
+      .then(initialPersons => {
+        setPersons(initialPersons)
       })
   }, [])
 
@@ -32,20 +30,20 @@ const App = () => {
   : persons.filter(person => person.name.toLowerCase().includes(filter.toLowerCase()))
 
 
-  const addName = (event) => {
+  const addPerson = (event) => {
     event.preventDefault()
     if (persons.some(person => person.name === newName)){
       alert(`${newName} is already added to phonebook`)
     } else {
-      const nameObject = {
+      const personObject = {
         id: String(persons.length + 1),
         name: newName,
         number: newNumber
       }
-      axios
-        .post('http://localhost:3001/persons', nameObject)
-        .then(response => {
-          const updatedPersons = persons.concat(response.data)
+      personService
+        .create(personObject)
+        .then(createdPerson => {
+          const updatedPersons = persons.concat(createdPerson)
           setPersons(updatedPersons)
           setNewName('')
           setNewNumber('')
@@ -59,7 +57,7 @@ const App = () => {
       <Filter filter={filter} handleFilterChange={handleFilterChange} />
       <h3>add a new</h3>
       <PersonForm 
-        addName={addName}
+        addPerson={addPerson}
         newName={newName}
         handleNameChange={handleNameChange}
         newNumber={newNumber}
