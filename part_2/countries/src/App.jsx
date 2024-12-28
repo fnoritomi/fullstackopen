@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import { CountriesList, CountryDetails } from './components/Countries' 
 
 const baseUrl = 'https://studies.cs.helsinki.fi/restcountries/api'
 
@@ -11,12 +12,11 @@ const getAll = () => {
 const App = () => {
   const [allCountries, setAllCountries] = useState([])
   const [filter, setFilter] = useState('')
+  const [countriesToShow, setSelCountriesToShow] = useState(null)
+  const [selCountry, setSelCountry] = useState(null)
+  const [notification, setNotification] = useState(null)
+  
   let message = null
-
-  const handleFilterChange = (event) => {
-    setFilter(event.target.value)
-    console.log(filter)
-  }
 
   useEffect(() => {
     getAll()
@@ -25,64 +25,48 @@ const App = () => {
       })
   }, [])
 
+  const handleFilterChange = (event) => {
+    const newFilter = event.target.value
+    const countries = filteredCountries(newFilter)
+    setFilter(newFilter)
+    setSelCountriesToShow(listedCountries(countries))
+    setSelCountry(selectedCountry(countries))
+  }
 
+  const filteredCountries = (filter) => {
+    return filter === ''
+      ? []
+      : allCountries.filter(country => country.name.common.toLowerCase().includes(filter.toLowerCase()))
+  }
 
-  const filteredCountries = filter === ''
-  ? []
-  : allCountries.filter(country => country.name.common.toLowerCase().includes(filter.toLowerCase()))
-
-  const countriesQt = filteredCountries.length
-
-  const countriesToShow = () => {
-    if (countriesQt > 1 && countriesQt <= 10) {
+  const listedCountries = (countries) => {
+    let countriesToShow = []
+    if (countries.length > 1 && countries.length <= 10) {
       message = null
-      return filteredCountries
+      console.log('filteredCountries', 'output', countries)
+      countriesToShow = countries
     }
-    if (filteredCountries.length > 10) message = 'Too many matches, specify another filter'
+    if (countries.length > 10) {
+      message = 'Too many matches, specify another filter'
+      countriesToShow = null
+    }
+    setNotification(message)
+    return countriesToShow
+  }
+
+  const selectedCountry = (countries) => {
+    console.log('selectedCountry', 'input', countries)
+    if (countries && countries.length === 1) {
+        console.log(countries[0])
+        return countries[0]
+    }
     return null
   }
 
-  const selectedCountry = () => {
-    if (countriesQt === 1) return filteredCountries[0]
-    return null
+  const showCountry = (id) => {
+    console.log(id)
+    setSelCountry(allCountries.find(country => country.cca3 === id))
   }
-
-  const Country = ({name}) => {
-    return (
-      <div>{name}</div>
-    )
-  }
-
-  const CountriesList = ({countries}) => {
-    console.log(countries)
-    if (countries) {
-      return (
-        <div>
-            {countries.map(country => 
-              <Country key={country.cca3} name={country.name.common}/> 
-            )}
-        </div>
-      ) 
-    }
-  }
-
-  const CountryDetails = ({country}) => {
-    console.log(country)
-    if (country) {
-      return (
-        <div>
-          <h2>{country.name.common}</h2>
-          <div>capital {country.capital}</div>
-          <div>area {country.area}</div>
-          <h3><b>languages:</b></h3>
-          <ul>
-            {Object.entries(country.languages).map(([code, language]) => (<li key={code}>{language}</li>))}
-          </ul>
-          <img src={country.flags.png} />
-        </div>
-      ) 
-    }
-  }  
 
   const Notification = ({message}) => {
     if (message) {
@@ -92,15 +76,14 @@ const App = () => {
     }
   }
 
-
   return (
     <div>
       <div>
         find countries <input value={filter} onChange={handleFilterChange} />
       </div>
-      <Notification message={message} />
-      <CountriesList countries={countriesToShow()} />
-      <CountryDetails country={selectedCountry()} />
+      <CountriesList countries={countriesToShow} showCountry={showCountry} />
+      <CountryDetails country={selCountry} />
+      <Notification message={notification} />
     </div>
   )
 }
