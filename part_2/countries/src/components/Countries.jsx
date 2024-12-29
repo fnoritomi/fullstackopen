@@ -17,6 +17,17 @@ const CountriesList = ({countries, showCountry}) => {
     }
 }
 
+const Languages = ({country}) => {
+    if ('languages' in country) return (
+        <>
+            <h3><b>languages:</b></h3>
+            <ul>
+                {Object.entries(country.languages).map(([code, language]) => (<li key={code}>{language}</li>))}
+            </ul>
+        </>
+    )
+}
+
 const CountryDetails = ({country}) => {
     console.log(country)
     if (country) {
@@ -25,11 +36,8 @@ const CountryDetails = ({country}) => {
                 <h2>{country.name.common}</h2>
                 <div>capital {country.capital}</div>
                 <div>area {country.area}</div>
-                <h3><b>languages:</b></h3>
-                <ul>
-                    {Object.entries(country.languages).map(([code, language]) => (<li key={code}>{language}</li>))}
-                </ul>
-                <img src={country.flags.png} />
+                <Languages country = {country} />
+                <p><img src={country.flags.png} /></p>
             </div>
         ) 
     }
